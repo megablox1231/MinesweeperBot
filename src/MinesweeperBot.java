@@ -44,6 +44,16 @@ public class MinesweeperBot {
 
     public void start(){
         BufferedImage current = myRobot.createScreenCapture(screen);
+        BufferedImage icon = null;
+
+        try {
+            icon = ImageIO.read(getClass().getResource("unopened.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Dimension cell1 = compareScans(current, icon);
+        myRobot.mouseMove(cell1.width, cell1.height);
     }
 
     public void stuff() throws InterruptedException {
@@ -155,5 +165,7 @@ public class MinesweeperBot {
     }
 
     public static void main(String[] cheese) throws InterruptedException {
+        MinesweeperBot bot = new MinesweeperBot();
+        bot.start();
     }
 }
