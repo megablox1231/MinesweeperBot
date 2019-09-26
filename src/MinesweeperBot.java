@@ -9,6 +9,7 @@ public class MinesweeperBot {
 
     Robot myRobot;
     Rectangle screen;
+    BufferedImage unopened;
 //    final Color BLACK = new Color(0, 0, 0);
 //    final Color GRAY = new Color(128, 128, 128);
 //    final Color SILVER = new Color(192, 192, 192);
@@ -35,6 +36,22 @@ public class MinesweeperBot {
         }
         screen = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
     }
+    
+    public class Cell{
+        public number = -1;
+        public isRevealed = false;
+        public isFlagged = false;
+        public analyzed = false;
+        public neighbors = 0;
+    }
+    
+    public void initImages(){
+        try {
+            unopened = ImageIO.read(getClass().getResource("unopened.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Algorithm Pseudocode:
@@ -44,16 +61,9 @@ public class MinesweeperBot {
 
     public void start(){
         BufferedImage current = myRobot.createScreenCapture(screen);
-        BufferedImage icon = null;
-
-        try {
-            icon = ImageIO.read(getClass().getResource("unopened.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Dimension cell1 = compareScans(current, icon);
+        Dimension cell1 = compareScans(current, unopened);
         myRobot.mouseMove(cell1.width, cell1.height);
+        
     }
 
     public void stuff() throws InterruptedException {
