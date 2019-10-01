@@ -9,6 +9,19 @@ public class MinesweeperBot {
 
     Robot myRobot;
     Rectangle screen;
+    BufferedImage flag;
+    BufferedImage frown;
+    BufferedImage neighbor1;
+    BufferedImage neighbor2:
+    BufferedImage neighbor3;
+    BufferedImage neighbor4;
+    BufferedImage neighbor5;
+    BufferedImage neighbor6;
+    BufferedImage neighbor7;
+    BufferedImage neighbor8;
+    BufferedImage question;
+    BufferedImage smile;
+    BufferedImage sunglasses;
     BufferedImage unopened;
 //    final Color BLACK = new Color(0, 0, 0);
 //    final Color GRAY = new Color(128, 128, 128);
@@ -45,7 +58,73 @@ public class MinesweeperBot {
         public neighbors = 0;
     }
     
-    public void initImages(){
+    public void initImages(){ 
+        try {
+            flag = ImageIO.read(getClass().getResource("flag.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            frown = ImageIO.read(getClass().getResource("frown.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor1 = ImageIO.read(getClass().getResource("neighbor1.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor2 = ImageIO.read(getClass().getResource("neighbor2.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        try {
+            neighbor3 = ImageIO.read(getClass().getResource("neighbor3.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor4 = ImageIO.read(getClass().getResource("neighbor4.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor5 = ImageIO.read(getClass().getResource("neighbor5.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor6 = ImageIO.read(getClass().getResource("neighbor6.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor7 = ImageIO.read(getClass().getResource("neighbor7.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            neighbor8 = ImageIO.read(getClass().getResource("neighbor8.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            question = ImageIO.read(getClass().getResource("question.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            smile = ImageIO.read(getClass().getResource("smile.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            sunglasses = ImageIO.read(getClass().getResource("sunglasses.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             unopened = ImageIO.read(getClass().getResource("unopened.png"));
         } catch (IOException e) {
