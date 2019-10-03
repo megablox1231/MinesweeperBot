@@ -9,6 +9,8 @@ public class MinesweeperBot {
 
     Robot myRobot;
     Rectangle screen;
+    int cellDist;
+    Cell[][] grid = new Cell[30][16];
     BufferedImage flag;
     BufferedImage frown;
     BufferedImage neighbor1;
@@ -143,6 +145,7 @@ public class MinesweeperBot {
         Dimension cell1 = compareScans(current, unopened);
         myRobot.mouseMove(cell1.width, cell1.height);
         
+        
     }
 
     public void stuff() throws InterruptedException {
@@ -216,6 +219,47 @@ public class MinesweeperBot {
         boolean matches;
         for(int x = 0; x < current.getWidth(); x++){
             for(int y = 0; y < current.getHeight(); y++){
+                matches = true;
+                for(int iconX = 0; iconX < icon.getWidth(); iconX++){
+                    for(int iconY = 0; iconY < icon.getHeight(); iconY++){
+                        if(x+iconX < current.getWidth() && y+iconY < current.getHeight()) {  //making sure not out of bounds
+                            tempColor = new Color(current.getRGB(x + iconX, y + iconY));
+                            tempIconColor = new Color(icon.getRGB(iconX, iconY));
+                            tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
+//                           String hexColoricon = String.format("#%06X", (0xFFFFFF & tempIconColor));
+//                           String hexColor = String.format("#%06X", (0xFFFFFF & tempColor));
+                            if (tempDist > 50) { //checking if they match at this pixel within given margin of error
+                                matches = false;
+                                break;
+                            } else {
+//                               myRobot.mouseMove(x + iconX, y + iconY);
+                            }
+                        }
+                        else{    //not within bounds
+                            matches = false;
+                            break;
+                        }
+                    }
+                    if(!matches){   //have to break out of both icon dimension loops
+                        break;
+                    }
+                }
+                if(matches){
+                    return new Dimension(x, y);
+                }
+            }
+        }
+        return null;
+    }
+    
+    //Overriding method for starting in middle of current Buffered Image
+    public Dimension compareScans(BufferedImage current, int x, int y, BufferedImage icon){
+        Color tempColor;
+        Color tempIconColor;
+        double tempDist;
+        boolean matches;
+        for(int x; x < current.getWidth(); x++){
+            for(int y; y < current.getHeight(); y++){
                 matches = true;
                 for(int iconX = 0; iconX < icon.getWidth(); iconX++){
                     for(int iconY = 0; iconY < icon.getHeight(); iconY++){
