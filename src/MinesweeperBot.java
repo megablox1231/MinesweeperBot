@@ -14,7 +14,7 @@ public class MinesweeperBot {
     BufferedImage flag;
     BufferedImage frown;
     BufferedImage neighbor1;
-    BufferedImage neighbor2:
+    BufferedImage neighbor2;
     BufferedImage neighbor3;
     BufferedImage neighbor4;
     BufferedImage neighbor5;
@@ -53,11 +53,11 @@ public class MinesweeperBot {
     }
     
     public class Cell{
-        public number = -1;
-        public isRevealed = false;
-        public isFlagged = false;
-        public analyzed = false;
-        public neighbors = 0;
+        public int number = -1;
+        public boolean isRevealed = false;
+        public boolean isFlagged = false;
+        public boolean analyzed = false;
+        public int neighbors = 0;
     }
     
     public void initImages(){ 
@@ -133,12 +133,6 @@ public class MinesweeperBot {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Algorithm Pseudocode:
-     * scan screen
-     *
-     */
 
     public void start(){
         BufferedImage current = myRobot.createScreenCapture(screen);
@@ -258,8 +252,8 @@ public class MinesweeperBot {
         Color tempIconColor;
         double tempDist;
         boolean matches;
-        for(int x; x < current.getWidth(); x++){
-            for(int y; y < current.getHeight(); y++){
+        for(; x < current.getWidth(); x++){
+            for(; y < current.getHeight(); y++){
                 matches = true;
                 for(int iconX = 0; iconX < icon.getWidth(); iconX++){
                     for(int iconY = 0; iconY < icon.getHeight(); iconY++){
