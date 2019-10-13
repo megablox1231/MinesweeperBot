@@ -4,27 +4,24 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.Buffer;
 
 public class MinesweeperBot {
 
-    Robot myRobot;
-    Rectangle screen;
-    int cellDist;
-    Cell[][] grid = new Cell[30][16];
-    BufferedImage flag;
-    BufferedImage frown;
-    BufferedImage neighbor1;
-    BufferedImage neighbor2;
-    BufferedImage neighbor3;
-    BufferedImage neighbor4;
-    BufferedImage neighbor5;
-    BufferedImage neighbor6;
-    BufferedImage neighbor7;
-    BufferedImage neighbor8;
-    BufferedImage question;
-    BufferedImage smile;
-    BufferedImage sunglasses;
-    BufferedImage unopened;
+    private Robot myRobot;
+    private Rectangle screen;
+    private int cellDist;
+    private Dimension originDim;
+    private Cell[][] grid;
+    private BufferedImage[] stateImages;
+    private BufferedImage[] faceImages;
+    private BufferedImage current;
+    private BufferedImage flag;
+    private BufferedImage question;
+    private BufferedImage smile;
+    private BufferedImage sunglasses;
+    private BufferedImage frown;
+    private BufferedImage unopened;
 //    final Color BLACK = new Color(0, 0, 0);
 //    final Color GRAY = new Color(128, 128, 128);
 //    final Color SILVER = new Color(192, 192, 192);
@@ -50,6 +47,8 @@ public class MinesweeperBot {
             e.printStackTrace();
         }
         screen = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        initImages();
+        grid = new Cell[16][30];
     }
     
     public class Cell{
@@ -60,7 +59,7 @@ public class MinesweeperBot {
         public int neighbors = 0;
     }
     
-    public void initImages(){ 
+    private void initImages() {
         try {
             flag = ImageIO.read(getClass().getResource("flag.png"));
         } catch (IOException e) {
@@ -71,42 +70,50 @@ public class MinesweeperBot {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor1 = null;
         try {
             neighbor1 = ImageIO.read(getClass().getResource("neighbor1.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor2 = null;
         try {
             neighbor2 = ImageIO.read(getClass().getResource("neighbor2.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
+        BufferedImage neighbor3 = null;
         try {
             neighbor3 = ImageIO.read(getClass().getResource("neighbor3.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor4 = null;
         try {
             neighbor4 = ImageIO.read(getClass().getResource("neighbor4.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor5 = null;
         try {
             neighbor5 = ImageIO.read(getClass().getResource("neighbor5.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor6 = null;
         try {
             neighbor6 = ImageIO.read(getClass().getResource("neighbor6.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor7 = null;
         try {
             neighbor7 = ImageIO.read(getClass().getResource("neighbor7.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        BufferedImage neighbor8 = null;
         try {
             neighbor8 = ImageIO.read(getClass().getResource("neighbor8.png"));
         } catch (IOException e) {
@@ -132,14 +139,75 @@ public class MinesweeperBot {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        stateImages = new BufferedImage[]{
+                neighbor1,
+                neighbor2,
+                neighbor3,
+                neighbor4,
+                neighbor5,
+                neighbor6,
+                neighbor7,
+                neighbor8
+        };
     }
 
     public void start(){
-        BufferedImage current = myRobot.createScreenCapture(screen);
-        Dimension cell1 = compareScans(current, unopened);
-        myRobot.mouseMove(cell1.width, cell1.height);
-        
-        
+        current = myRobot.createScreenCapture(screen);
+        originDim = compareScans(current, unopened);
+        myRobot.mouseMove(originDim.width, originDim.height);
+
+        //presses out of ide window TODO: Remove after program finished
+        myRobot.mousePress(InputEvent.BUTTON1_MASK);
+        myRobot.mouseRelease(InputEvent.BUTTON1_MASK);
+
+        Dimension tempDim = compareScans(current, originDim.width, originDim.height+1, unopened);
+        myRobot.mouseMove(tempDim.width, tempDim.height);
+
+        cellDist = tempDim.height - originDim.height;
+
+        myRobot.mousePress(InputEvent.BUTTON1_MASK);
+        myRobot.mouseRelease(InputEvent.BUTTON1_MASK);
+
+        current = myRobot.createScreenCapture(screen);
+
+
+        grid[0][0].isRevealed = true;
+
+        cellTrail();
+    }
+
+    private void cellTrail(){
+
+    }
+
+    private void findCellStat(Dimension dim){
+        if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor1) == null){
+            if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor2) == null){
+                if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor3) == null){
+                    if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor4) == null){
+                        if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor5) == null){
+
+                        }
+                        else{
+                            grid[0][0].number = 2;
+                        }
+                    }
+                    else{
+                        grid[0][0].number = 4;
+                    }
+                }
+                else{
+                    grid[0][0].number = 3;
+                }
+            }
+            else{
+                grid[0][0].number = 2;
+            }
+        }
+        else{
+            grid[0][0].number = 1;
+        }
     }
 
     public void stuff() throws InterruptedException {
@@ -246,7 +314,7 @@ public class MinesweeperBot {
         return null;
     }
     
-    //Overriding method for starting in middle of current Buffered Image
+    //Overriding method for starting at dimension (x, y) of current Buffered Image
     public Dimension compareScans(BufferedImage current, int x, int y, BufferedImage icon){
         Color tempColor;
         Color tempIconColor;
@@ -258,6 +326,47 @@ public class MinesweeperBot {
                 for(int iconX = 0; iconX < icon.getWidth(); iconX++){
                     for(int iconY = 0; iconY < icon.getHeight(); iconY++){
                         if(x+iconX < current.getWidth() && y+iconY < current.getHeight()) {  //making sure not out of bounds
+                            tempColor = new Color(current.getRGB(x + iconX, y + iconY));
+                            tempIconColor = new Color(icon.getRGB(iconX, iconY));
+                            tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
+//                           String hexColoricon = String.format("#%06X", (0xFFFFFF & tempIconColor));
+//                           String hexColor = String.format("#%06X", (0xFFFFFF & tempColor));
+                            if (tempDist > 50) { //checking if they match at this pixel within given margin of error
+                                matches = false;
+                                break;
+                            } else {
+//                               myRobot.mouseMove(x + iconX, y + iconY);
+                            }
+                        }
+                        else{    //not within bounds
+                            matches = false;
+                            break;
+                        }
+                    }
+                    if(!matches){   //have to break out of both icon dimension loops
+                        break;
+                    }
+                }
+                if(matches){
+                    return new Dimension(x, y);
+                }
+            }
+        }
+        return null;
+    }
+
+    //Overriding method for starting at dimension (x, y) and ending at dimension (endX, endY) of current Buffered Image
+    public Dimension compareScans(BufferedImage current, int x, int y, int endX, int endY, BufferedImage icon){
+        Color tempColor;
+        Color tempIconColor;
+        double tempDist;
+        boolean matches;
+        for(; x < endX; x++){
+            for(; y < endY; y++){
+                matches = true;
+                for(int iconX = 0; iconX < icon.getWidth(); iconX++){
+                    for(int iconY = 0; iconY < icon.getHeight(); iconY++){
+                        if(x+iconX < endX && y+iconY < endY) {  //making sure not out of bounds
                             tempColor = new Color(current.getRGB(x + iconX, y + iconY));
                             tempIconColor = new Color(icon.getRGB(iconX, iconY));
                             tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
