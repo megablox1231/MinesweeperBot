@@ -60,86 +60,32 @@ public class MinesweeperBot {
     }
     
     private void initImages() {
-        try {
-            flag = ImageIO.read(getClass().getResource("flag.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            frown = ImageIO.read(getClass().getResource("frown.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor1 = null;
-        try {
-            neighbor1 = ImageIO.read(getClass().getResource("neighbor1.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor2 = null;
-        try {
-            neighbor2 = ImageIO.read(getClass().getResource("neighbor2.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         BufferedImage neighbor3 = null;
-        try {
-            neighbor3 = ImageIO.read(getClass().getResource("neighbor3.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor4 = null;
-        try {
-            neighbor4 = ImageIO.read(getClass().getResource("neighbor4.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor5 = null;
-        try {
-            neighbor5 = ImageIO.read(getClass().getResource("neighbor5.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor6 = null;
-        try {
-            neighbor6 = ImageIO.read(getClass().getResource("neighbor6.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor7 = null;
-        try {
-            neighbor7 = ImageIO.read(getClass().getResource("neighbor7.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         BufferedImage neighbor8 = null;
         try {
+            flag = ImageIO.read(getClass().getResource("flag.png"));
+            frown = ImageIO.read(getClass().getResource("frown.png"));
+            neighbor1 = ImageIO.read(getClass().getResource("neighbor1.png"));
+            neighbor2 = ImageIO.read(getClass().getResource("neighbor2.png"));
+            neighbor3 = ImageIO.read(getClass().getResource("neighbor3.png"));
+            neighbor4 = ImageIO.read(getClass().getResource("neighbor4.png"));
+            neighbor5 = ImageIO.read(getClass().getResource("neighbor5.png"));
+            neighbor6 = ImageIO.read(getClass().getResource("neighbor6.png"));
+            neighbor7 = ImageIO.read(getClass().getResource("neighbor7.png"));
             neighbor8 = ImageIO.read(getClass().getResource("neighbor8.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             question = ImageIO.read(getClass().getResource("question.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             smile = ImageIO.read(getClass().getResource("smile.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             sunglasses = ImageIO.read(getClass().getResource("sunglasses.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             unopened = ImageIO.read(getClass().getResource("unopened.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         stateImages = new BufferedImage[]{
                 neighbor1,
                 neighbor2,
@@ -171,42 +117,22 @@ public class MinesweeperBot {
 
         current = myRobot.createScreenCapture(screen);
 
-
+        findCellStat(originDim, 0, 0);
         grid[0][0].isRevealed = true;
 
         cellTrail();
     }
 
-    private void cellTrail(){
-
+    private void cellTrail(int row, int col){
+        if(grid[row][col].number = )
     }
 
-    private void findCellStat(Dimension dim){
-        if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor1) == null){
-            if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor2) == null){
-                if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor3) == null){
-                    if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor4) == null){
-                        if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, neighbor5) == null){
-
-                        }
-                        else{
-                            grid[0][0].number = 2;
-                        }
-                    }
-                    else{
-                        grid[0][0].number = 4;
-                    }
-                }
-                else{
-                    grid[0][0].number = 3;
-                }
+    private void findCellStat(Dimension dim, int col, int row){
+        for(int i = 0; i < stateImages.length; i++){
+            if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, stateImages[i]) != null){
+                grid[col][row].number = i+1;
+                return;
             }
-            else{
-                grid[0][0].number = 2;
-            }
-        }
-        else{
-            grid[0][0].number = 1;
         }
     }
 
