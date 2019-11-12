@@ -8,6 +8,9 @@ import java.nio.Buffer;
 
 public class MinesweeperBot {
 
+    private final int LENGTH = 30;
+    private final int HEIGHT = 16;
+    
     private Robot myRobot;
     private Rectangle screen;
     private int cellDist;
@@ -48,7 +51,7 @@ public class MinesweeperBot {
         }
         screen = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         initImages();
-        grid = new Cell[16][30];
+        grid = new Cell[HEIGHT][LENGTH];
     }
     
     public class Cell{
@@ -117,17 +120,44 @@ public class MinesweeperBot {
 
         current = myRobot.createScreenCapture(screen);
 
-        findCellStat(originDim, 0, 0);
-        grid[0][0].isRevealed = true;
+        //TODO: add checking if lost everytime a cell is clicked
+        
+        applyCellStat(originDim, 0, 0);
+        grid[0][0].isRevealed = true; //TODO: could be wrong
 
-        cellTrail();
+        cellTrail(0, 0, -1, -1); //pass -1, -1 if no previous cell
     }
 
-    private void cellTrail(int row, int col){
-        if(grid[row][col].number = )
+    private void cellTrail(int row, int col, int prevRow, int prevCol){
+        if(row >= HEIGHT || row < 0 || col >= LENGTH || col < 0){
+            return;
+        }
+        if(grid[row][col].number == -1){
+            return;
+        }
+        if(grid[row][col].number == 0){
+            if(prevRow != row - 1 && prevCol != col){
+                cellTrail(row - 1, col, row, col);
+            }
+            if(prevRow != row && prevCol != col - 1){
+                cellTrail(row, col - 1, row, col);
+            }
+            if(prevRow != row && prevCol != col + 1){
+                cellTrail(row, col + 1);
+            }
+            if(prevRow != row + 1 && prevCol != col){
+                cellTrail(row + 1, col);
+            }
+            return;
+        }
+        
+        for(int r = row - 1; r < row + 1; r++){
+            for(int c = col - 1; c < col + 1; c++){
+                if(!grid[r][c].isRevealed){
+                    applyCellStat(
     }
 
-    private void findCellStat(Dimension dim, int col, int row){
+    private void applyCellStat(Dimension dim, int col, int row){
         for(int i = 0; i < stateImages.length; i++){
             if(compareScans(current, dim.width, dim.height, dim.width+cellDist, dim.height+cellDist, stateImages[i]) != null){
                 grid[col][row].number = i+1;
