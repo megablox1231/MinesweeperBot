@@ -154,7 +154,8 @@ public class MinesweeperBot {
         for(int r = row - 1; r < row + 1; r++){
             for(int c = col - 1; c < col + 1; c++){
                 if(!grid[r][c].isRevealed){
-                    applyCellStat(
+                    applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
+                    
     }
 
     private void applyCellStat(Dimension dim, int col, int row){
