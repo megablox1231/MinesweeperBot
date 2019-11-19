@@ -128,34 +128,37 @@ public class MinesweeperBot {
         cellTrail(0, 0, -1, -1); //pass -1, -1 if no previous cell
     }
 
-    private void cellTrail(int row, int col, int prevRow, int prevCol){
-        if(row >= HEIGHT || row < 0 || col >= LENGTH || col < 0){
+    private void cellTrail(int row, int col, int prevRow, int prevCol) {
+        if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0) {
             return;
         }
-        if(grid[row][col].number == -1){
+        if (grid[row][col].number == -1) {
             return;
         }
-        if(grid[row][col].number == 0){
-            if(prevRow != row - 1 && prevCol != col){
+        if (grid[row][col].number == 0) {
+            if (prevRow != row - 1 && prevCol != col) {
                 cellTrail(row - 1, col, row, col);
             }
-            if(prevRow != row && prevCol != col - 1){
+            if (prevRow != row && prevCol != col - 1) {
                 cellTrail(row, col - 1, row, col);
             }
-            if(prevRow != row && prevCol != col + 1){
-                cellTrail(row, col + 1);
+            if (prevRow != row && prevCol != col + 1) {
+                cellTrail(row, col + 1, row, col);
             }
-            if(prevRow != row + 1 && prevCol != col){
-                cellTrail(row + 1, col);
+            if (prevRow != row + 1 && prevCol != col) {
+                cellTrail(row + 1, col, row, col);
             }
             return;
         }
-        
-        for(int r = row - 1; r < row + 1; r++){
-            for(int c = col - 1; c < col + 1; c++){
-                if(!grid[r][c].isRevealed){
+
+        for (int r = row - 1; r < row + 1; r++) {
+            for (int c = col - 1; c < col + 1; c++) {
+                if (!grid[r][c].isRevealed) {
                     applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
-                    
+                    grid[r][c].isRevealed = true;
+                }
+            }
+        }
     }
 
     private void applyCellStat(Dimension dim, int col, int row){
