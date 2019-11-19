@@ -123,7 +123,6 @@ public class MinesweeperBot {
         //TODO: add checking if lost everytime a cell is clicked
         
         applyCellStat(originDim, 0, 0);
-        grid[0][0].isRevealed = true; //TODO: could be wrong
 
         cellTrail(0, 0, -1, -1); //pass -1, -1 if no previous cell
     }
@@ -150,12 +149,22 @@ public class MinesweeperBot {
             }
             return;
         }
-
+        
+        int unopened = 0;
+        int flags = 0;
         for (int r = row - 1; r < row + 1; r++) {
             for (int c = col - 1; c < col + 1; c++) {
-                if (!grid[r][c].isRevealed) {
+                if (grid[r][c].number == -1 && !grid[r][c].isFlagged) {
                     applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
-                    grid[r][c].isRevealed = true;
+                }
+                if(grid[r][c].number == -1){
+                    unopened++;
+                    if(grid[r][c].isFlagged){
+                        flags++;
+                    }                    
+                }
+                else if(grid[r][c].number != 0){
+                    
                 }
             }
         }
