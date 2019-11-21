@@ -131,6 +131,9 @@ public class MinesweeperBot {
         if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0) {
             return;
         }
+        if (grid[r][c].number == -1 && !grid[r][c].isFlagged) {
+            applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
+        }
         if (grid[row][col].number == -1) {
             return;
         }
