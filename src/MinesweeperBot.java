@@ -124,7 +124,9 @@ public class MinesweeperBot {
         
         applyCellStat(originDim, 0, 0);
 
-        cellTrail(0, 0, -1, -1); //pass -1, -1 if no previous cell
+        while(true //we haven't won yet){
+              cellTrail(0, 0, -1, -1); //pass -1, -1 if no previous cell
+        }
     }
 
     private void cellTrail(int row, int col, int prevRow, int prevCol) {
@@ -155,8 +157,14 @@ public class MinesweeperBot {
         
         int unopened = 0;
         int flags = 0;
-        for (int r = row - 1; r < row + 1; r++) {
-            for (int c = col - 1; c < col + 1; c++) {
+        for (int r = row - 1; r <= row + 1; r++) {
+            if(r >= HEIGHT || r < 0){
+                continue;
+            }
+            for (int c = col - 1; c <= col + 1; c++) {
+                if ((c == col && r == row) || c >= LENGTH || c < 0) {
+                    continue;
+                }
                 if (grid[r][c].number == -1 && !grid[r][c].isFlagged) {
                     applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
                 }
@@ -168,28 +176,44 @@ public class MinesweeperBot {
                         unopened++;
                     }
                 }
-                else if(grid[r][c].number != 0){
-                    if(unopened == grid[r][c].number){
-                        //flag em
+            }
+        }
+
+        if(unopened == grid[row][col].number){
+            //flag em (iterate over all 8 cells again or keep track of unopned cell locales with new array)
+            for (int r = row - 1; r <= row + 1; r++) {
+                if(r >= HEIGHT || r < 0){
+                    continue;
+                }
+                for (int c = col - 1; c <= col + 1; c++) {
+                    if ((c == col && r == row) || c >= LENGTH || c < 0) {
+                        continue;
+                    }
+                    if(grid[r][c].number == -1) {
+                        
                     }
                 }
             }
         }
-
-        if (grid[row][col].number == 0) {
-            if (prevRow != row - 1 && prevCol != col) {
-                cellTrail(row - 1, col, row, col);
-            }
-            if (prevRow != row && prevCol != col - 1) {
-                cellTrail(row, col - 1, row, col);
-            }
-            if (prevRow != row && prevCol != col + 1) {
-                cellTrail(row, col + 1, row, col);
-            }
-            if (prevRow != row + 1 && prevCol != col) {
-                cellTrail(row + 1, col, row, col);
-            }
-            return;
+        if(flags == grid[row][col].number && unopened > 0){
+            //chain
+            //return all the way back up stack
+        }
+        else if(grid[row][col].number - flags = 1){
+            //scan cross
+        }
+        
+        if (prevRow != row - 1 && prevCol != col) {
+            cellTrail(row - 1, col, row, col);
+        }
+        if (prevRow != row && prevCol != col - 1) {
+            cellTrail(row, col - 1, row, col);
+        }
+        if (prevRow != row && prevCol != col + 1) {
+            cellTrail(row, col + 1, row, col);
+        }
+        if (prevRow != row + 1 && prevCol != col) {
+            cellTrail(row + 1, col, row, col);
         }
     }
 
@@ -306,7 +330,7 @@ public class MinesweeperBot {
         return null;
     }
     
-    //Overriding method for starting at dimension (x, y) of current Buffered Image
+    //Overloading method for starting at dimension (x, y) of current Buffered Image
     public Dimension compareScans(BufferedImage current, int x, int y, BufferedImage icon){
         Color tempColor;
         Color tempIconColor;
@@ -347,7 +371,7 @@ public class MinesweeperBot {
         return null;
     }
 
-    //Overriding method for starting at dimension (x, y) and ending at dimension (endX, endY) of current Buffered Image
+    //Overloading method for starting at dimension (x, y) and ending at dimension (endX, endY) of current Buffered Image
     public Dimension compareScans(BufferedImage current, int x, int y, int endX, int endY, BufferedImage icon){
         Color tempColor;
         Color tempIconColor;
