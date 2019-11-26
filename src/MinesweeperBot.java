@@ -131,8 +131,8 @@ public class MinesweeperBot {
         if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0) {
             return;
         }
-        if (grid[r][c].number == -1 && !grid[r][c].isFlagged) {
-            applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
+        if (grid[row][col].number == -1 && !grid[row][col].isFlagged) {
+            applyCellStat(new Dimension(originDim.width + (col * cellDist), originDim.height + (row * cellDist)), col, row);
         }
         if (grid[row][col].number == -1) {
             return;
@@ -161,15 +161,35 @@ public class MinesweeperBot {
                     applyCellStat(new Dimension(originDim.width + (c * cellDist), originDim.height + (r * cellDist)), c, r);
                 }
                 if(grid[r][c].number == -1){
-                    unopened++;
                     if(grid[r][c].isFlagged){
                         flags++;
-                    }                    
+                    }
+                    else{
+                        unopened++;
+                    }
                 }
                 else if(grid[r][c].number != 0){
-                    
+                    if(unopened == grid[r][c].number){
+                        //flag em
+                    }
                 }
             }
+        }
+
+        if (grid[row][col].number == 0) {
+            if (prevRow != row - 1 && prevCol != col) {
+                cellTrail(row - 1, col, row, col);
+            }
+            if (prevRow != row && prevCol != col - 1) {
+                cellTrail(row, col - 1, row, col);
+            }
+            if (prevRow != row && prevCol != col + 1) {
+                cellTrail(row, col + 1, row, col);
+            }
+            if (prevRow != row + 1 && prevCol != col) {
+                cellTrail(row + 1, col, row, col);
+            }
+            return;
         }
     }
 
