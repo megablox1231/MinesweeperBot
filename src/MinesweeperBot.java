@@ -11,13 +11,16 @@ public class MinesweeperBot {
 
     private final int LENGTH = 30;
     private final int HEIGHT = 16;
+    private final boolean autoRestart = true;   //true if we want to auto-restart game every time we fail
 
     private int cellDist;
     private boolean trailing;   //when true, cellTrail can continue
     private boolean noZero;     //when true, cellTrail can't move to empty cells
+    private boolean prevAction; //when true, cell(s) were revealed on the last cellTrail loop
     private Robot myRobot;
     private Rectangle screen;
     private Dimension originDim;
+    private Dimension faceDim;
     private Cell[][] grid;
 
     private BufferedImage[] stateImages;
@@ -63,6 +66,7 @@ public class MinesweeperBot {
         }
         trailing = true;
         noZero = false;
+        prevAction = true;
     }
 
     //TODO: !isRevealed can include unscanned 0 cells
@@ -128,11 +132,13 @@ public class MinesweeperBot {
         };
     }
 
-    //TODO: add diagonals, guessing, don't start over unless totally out of options, fail check, auto-restart
+    //TODO: add diagonals, search for straggling islands (could also start on one), guessing,
+    // don't start over unless totally out of options, fail check, auto-restart
 
     public void start() {
         current = myRobot.createScreenCapture(screen);
         originDim = compareScans(current, unopened);
+        faceDim = compareScans(current, smile);
         myRobot.mouseMove(originDim.width, originDim.height);
 
         //presses out of ide window TODO: Remove after program finished
@@ -144,24 +150,33 @@ public class MinesweeperBot {
 
         cellDist = tempDim.height - originDim.height;
 
-        myRobot.mouseMove(originDim.width, originDim.height);
+        while(!winCheck() && autoRestart) {
+            //TODO: find a way to have it so you don't restart on first go :/
+            restart();
+            myRobot.mouseMove(originDim.width, originDim.height);
 
-        myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 
-        current = myRobot.createScreenCapture(screen);
-
-        //TODO: add checking if lost every time a cell is clicked
-
-        applyCellStat(0, 0);
-
-        //we haven't won yet
-        while (true) {
-            cellTrail(0, 0); //pass -1, -1 if no previous cell
             current = myRobot.createScreenCapture(screen);
-            trailing = true;
-            noZero = false;
-            resetVisited();
+
+            applyCellStat(0, 0);
+            //we haven't won yet
+            while (prevAction) {
+                prevAction = false;
+                cellTrail(0, 0); //pass -1, -1 if no previous cell
+                current = myRobot.createScreenCapture(screen);
+                trailing = true;
+                noZero = false;
+                resetVisited();
+            }
+
+            prevAction = true;
+            for (int row = 0; row < grid.length; row++) {
+                for (int col = 0; col < grid[0].length; col++) {
+                    grid[row][col] = new Cell();
+                }
+            }
         }
     }
 
@@ -241,6 +256,7 @@ public class MinesweeperBot {
                         grid[r][c].isRevealed = true;
                         System.out.println("Row: " + r + " Col: " + c);
                         flags++;
+                        prevAction = true;
                     }
                 }
             }
@@ -250,6 +266,7 @@ public class MinesweeperBot {
             myRobot.mouseMove(originDim.width + (cellDist * col), originDim.height + (cellDist * row));
             myRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
             myRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+            prevAction = true;
             //return all the way back up stack because cells were opened
             trailing = false;
             return;
@@ -268,6 +285,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -280,6 +298,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -296,6 +315,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row-2][col-1].isRevealed = true;
                             grid[row-2][col-1].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                     if(col < LENGTH - 1){
@@ -308,6 +328,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row-2][col+1].isRevealed = true;
                             grid[row-2][col+1].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                 }
@@ -325,6 +346,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -337,6 +359,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -353,6 +376,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row+2][col-1].isRevealed = true;
                             grid[row+2][col-1].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                     if(col < LENGTH - 1){
@@ -365,6 +389,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row+2][col+1].isRevealed = true;
                             grid[row+2][col+1].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                 }
@@ -382,6 +407,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -394,6 +420,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -410,6 +437,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row-1][col-2].isRevealed = true;
                             grid[row-1][col-2].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                     if(row < HEIGHT - 1){
@@ -422,6 +450,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row+1][col-2].isRevealed = true;
                             grid[row+1][col-2].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                 }
@@ -439,6 +468,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -451,6 +481,7 @@ public class MinesweeperBot {
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                            prevAction = true;
                             trailing = false;
                             return;
                         }
@@ -467,6 +498,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row-1][col+2].isRevealed = true;
                             grid[row-1][col+2].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                     if(row < HEIGHT - 1){
@@ -479,6 +511,7 @@ public class MinesweeperBot {
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                             grid[row+1][col+2].isRevealed = true;
                             grid[row+1][col+2].isFlagged = true;
+                            prevAction = true;
                         }
                     }
                 }
@@ -531,61 +564,21 @@ public class MinesweeperBot {
         }
     }
 
-    //completely irrelevant
-    public void stuff() throws InterruptedException {
-        BufferedImage current = myRobot.createScreenCapture(screen);
-        BufferedImage icon = null;
-        try {
-            icon = ImageIO.read(getClass().getResource("chromeIcon.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Dimension locale = compareScans(current, icon); //open chrome
-        myRobot.mouseMove(locale.width, locale.height);
+    //TODO: maybe find where face is first time then start there always afterwards
+    //Returns true if we get a game over
+    private boolean failCheck(){
+        return compareScans(current, faceDim.width, faceDim.height, faceDim.width+frown.getWidth(), faceDim.height+frown.getHeight(), frown) != null;
+    }
+
+    //Returns true if we won
+    private boolean winCheck(){
+        return compareScans(current, faceDim.width, faceDim.height, faceDim.width+sunglasses.getWidth(), faceDim.height+sunglasses.getHeight(), sunglasses) != null;
+    }
+
+    private void restart(){
+        myRobot.mouseMove(faceDim.width, faceDim.height);
         myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-
-        Thread.sleep(500);
-        myRobot.keyPress(KeyEvent.VK_CONTROL);  //getting tabs
-        myRobot.keyPress(KeyEvent.VK_SHIFT);
-        myRobot.keyPress(KeyEvent.VK_T);
-        myRobot.keyRelease(KeyEvent.VK_CONTROL);
-        myRobot.keyRelease(KeyEvent.VK_SHIFT);
-        myRobot.keyRelease(KeyEvent.VK_T);
-
-        Thread.sleep(500);
-        myRobot.keyPress(KeyEvent.VK_WINDOWS);  //minimizing
-        myRobot.keyPress(KeyEvent.VK_DOWN);
-        myRobot.keyRelease(KeyEvent.VK_WINDOWS);
-        myRobot.keyRelease(KeyEvent.VK_DOWN);
-        myRobot.keyPress(KeyEvent.VK_WINDOWS);  //done twice to ensure minimized if maximized initially
-        myRobot.keyPress(KeyEvent.VK_DOWN);
-        myRobot.keyRelease(KeyEvent.VK_WINDOWS);
-        myRobot.keyRelease(KeyEvent.VK_DOWN);
-
-        myRobot.keyPress(KeyEvent.VK_ALT);  //exiting window
-        myRobot.keyPress(KeyEvent.VK_F4);
-        myRobot.keyRelease(KeyEvent.VK_ALT);
-        myRobot.keyRelease(KeyEvent.VK_F4);
-
-        try {
-            icon = ImageIO.read(getClass().getResource("chromeIcon_noArrow.png"));  //getResource needed cuz jar file
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        current = myRobot.createScreenCapture(screen);
-        locale = compareScans(current, icon);
-        myRobot.mouseMove(locale.width, locale.height); //pressing the minimized chrome window with tabs
-        myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-
-        Thread.sleep(200);
-        myRobot.keyPress(KeyEvent.VK_WINDOWS);  //maximizing
-        myRobot.keyPress(KeyEvent.VK_UP);
-        myRobot.keyRelease(KeyEvent.VK_WINDOWS);
-        myRobot.keyRelease(KeyEvent.VK_UP);
     }
 
     /*
