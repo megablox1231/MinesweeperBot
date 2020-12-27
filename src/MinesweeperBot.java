@@ -1,3 +1,9 @@
+
+
+import lc.kra.system.keyboard.GlobalKeyboardHook;
+import lc.kra.system.keyboard.event.GlobalKeyAdapter;
+import lc.kra.system.keyboard.event.GlobalKeyEvent;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -5,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.Buffer;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MinesweeperBot {
@@ -32,22 +39,6 @@ public class MinesweeperBot {
     private BufferedImage sunglasses;
     private BufferedImage frown;
     private BufferedImage unopened;
-//    final Color BLACK = new Color(0, 0, 0);
-//    final Color GRAY = new Color(128, 128, 128);
-//    final Color SILVER = new Color(192, 192, 192);
-//    final Color WHITE = new Color(255, 255, 255);
-//    final Color MAROON = new Color(128, 0, 0);
-//    final Color RED = new Color(255, 0, 0);
-//    final Color OLIVE = new Color(128, 128, 0);
-//    final Color YELLOW = new Color(255, 255, 0);
-//    final Color GREEN = new Color(0, 128, 0);
-//    final Color LIME = new Color(0, 255, 0);
-//    final Color TEAL = new Color(0, 128, 128);
-//    final Color AQUA = new Color(0, 255, 255);
-//    final Color NAVY = new Color(0, 0, 128);
-//    final Color BLUE = new Color(0, 0, 255);
-//    final Color PURPLE = new Color(128, 0, 128);
-//    final Color FUCHSIA = new Color(255, 0, 255);
 
     public MinesweeperBot() {
         try {
@@ -133,7 +124,7 @@ public class MinesweeperBot {
     }
 
     //TODO: add diagonals, search for straggling islands (could also start on one), guessing,
-    // don't start over unless totally out of options, fail check, auto-restart
+    // don't start over unless totally out of options
 
     public void start() {
         current = myRobot.createScreenCapture(screen);
@@ -576,7 +567,8 @@ public class MinesweeperBot {
     }
 
     private void restart(){
-        myRobot.mouseMove(faceDim.width, faceDim.height);
+        //+10 because button doesn't register click on edge
+        myRobot.mouseMove(faceDim.width + 10, faceDim.height + 10);
         myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
@@ -709,6 +701,26 @@ public class MinesweeperBot {
     }
 
     public static void main(String[] cheese) throws InterruptedException {
+        GlobalKeyboardHook keyboardHook = new GlobalKeyboardHook(true);
+        for (Map.Entry<Long, String> keyboard : GlobalKeyboardHook.listKeyboards().entrySet()) {
+            System.out.format("%d: %s\n", keyboard.getKey(), keyboard.getValue());
+        }
+        keyboardHook.addKeyListener(new GlobalKeyAdapter() {
+
+            @Override
+            public void keyPressed(GlobalKeyEvent event) {
+                if (event.getVirtualKeyCode() == GlobalKeyEvent.VK_ESCAPE) {
+                    keyboardHook.shutdownHook();
+                    System.exit(2);
+                }
+            }
+
+            @Override
+            public void keyReleased(GlobalKeyEvent event) {
+                ;
+            }
+        });
+
         MinesweeperBot bot = new MinesweeperBot();
         bot.start();
     }
