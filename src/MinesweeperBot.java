@@ -141,7 +141,7 @@ public class MinesweeperBot {
 
         cellDist = tempDim.height - originDim.height;
 
-        while(!winCheck() && autoRestart) {
+        do {
             //TODO: find a way to have it so you don't restart on first go :/
             restart();
             myRobot.mouseMove(originDim.width, originDim.height);
@@ -168,7 +168,7 @@ public class MinesweeperBot {
                     grid[row][col] = new Cell();
                 }
             }
-        }
+        } while (!winCheck() && autoRestart);
     }
 
     private void cellTrail(int row, int col) {
@@ -247,6 +247,7 @@ public class MinesweeperBot {
                         grid[r][c].isRevealed = true;
                         System.out.println("Row: " + r + " Col: " + c);
                         flags++;
+                        unopened--;
                         prevAction = true;
                     }
                 }
