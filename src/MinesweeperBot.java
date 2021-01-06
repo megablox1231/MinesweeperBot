@@ -7,12 +7,9 @@ import lc.kra.system.keyboard.event.GlobalKeyEvent;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class MinesweeperBot {
 
@@ -21,9 +18,9 @@ public class MinesweeperBot {
     private final boolean autoRestart = true;   //true if we want to auto-restart game every time we fail
 
     private int cellDist;
-    private boolean trailing;   //when true, cellTrail can continue
     private boolean noZero;     //when true, cellTrail can't move to empty cells
     private boolean prevAction; //when true, cell(s) were revealed on the last cellTrail loop
+    private boolean stopGuess;  //when true, guess() will stop running
     private Robot myRobot;
     private Rectangle screen;
     private Dimension originDim;
@@ -55,9 +52,9 @@ public class MinesweeperBot {
                 grid[row][col] = new Cell();
             }
         }
-        trailing = true;
         noZero = false;
         prevAction = true;
+        stopGuess = false;
     }
 
     //TODO: !isRevealed can include unscanned 0 cells
@@ -123,7 +120,7 @@ public class MinesweeperBot {
         };
     }
 
-    //TODO: add diagonals, search for straggling islands (could also start on one), guessing,
+    //TODO: search for straggler islands (could also start on one),
     // don't start over unless totally out of options
 
     public void start() {
@@ -152,16 +149,23 @@ public class MinesweeperBot {
             current = myRobot.createScreenCapture(screen);
 
             applyCellStat(0, 0);
-            //we haven't won yet
-            while (prevAction) {
-                prevAction = false;
-                cellTrail(0, 0); //pass -1, -1 if no previous cell
-                current = myRobot.createScreenCapture(screen);
-                trailing = true;
-                noZero = false;
-                resetVisited();
+            while(!failCheck() && !winCheck()) {
+                //we haven't won yet
+                while (prevAction) {
+                    prevAction = false;
+                    cellTrail(0, 0); //pass -1, -1 if no previous cell
+                    current = myRobot.createScreenCapture(screen);
+                    noZero = false;
+                    resetVisited();
+                }
+                if (!winCheck()) {
+                    guess(0, 0);
+                    stopGuess = false;
+                    noZero = false;
+                    prevAction = true;
+                    resetVisited();
+                }
             }
-
             prevAction = true;
             for (int row = 0; row < grid.length; row++) {
                 for (int col = 0; col < grid[0].length; col++) {
@@ -173,7 +177,7 @@ public class MinesweeperBot {
 
     private void cellTrail(int row, int col) {
         //checking if out of bounds, previously visited or not trailing
-        if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || !trailing || grid[row][col].visited) {
+        if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || grid[row][col].visited) {
             return;
         }
 
@@ -196,10 +200,14 @@ public class MinesweeperBot {
             if (noZero) {
                 return;
             }
+            cellTrail(row - 1, col - 1);
             cellTrail(row - 1, col);
+            cellTrail(row - 1, col + 1);
             cellTrail(row, col - 1);
             cellTrail(row, col + 1);
+            cellTrail(row + 1, col - 1);
             cellTrail(row + 1, col);
+            cellTrail(row + 1, col + 1);
             return;
         }
 
@@ -259,9 +267,7 @@ public class MinesweeperBot {
             myRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
             myRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
             prevAction = true;
-            //return all the way back up stack because cells were opened
-            trailing = false;
-            return;
+            current = myRobot.createScreenCapture(screen);
         } else if (grid[row][col].number - flags == 1) {
             int effNum = 0;
             //scan cross
@@ -278,8 +284,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                     if (col < LENGTH - 1){
@@ -291,8 +296,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                 }
@@ -339,8 +343,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                     if (col < LENGTH - 1){
@@ -352,8 +355,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                 }
@@ -400,8 +402,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                     if (row < HEIGHT - 1){
@@ -413,8 +414,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                 }
@@ -461,8 +461,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                     if (row < HEIGHT - 1){
@@ -474,8 +473,7 @@ public class MinesweeperBot {
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            trailing = false;
-                            return;
+                            current = myRobot.createScreenCapture(screen);
                         }
                     }
                 }
@@ -511,11 +509,84 @@ public class MinesweeperBot {
         }
 
         noZero = true;
-
+        cellTrail(row - 1, col - 1);
         cellTrail(row - 1, col);
+        cellTrail(row - 1, col + 1);
         cellTrail(row, col - 1);
         cellTrail(row, col + 1);
+        cellTrail(row + 1, col - 1);
         cellTrail(row + 1, col);
+        cellTrail(row + 1, col + 1);
+    }
+
+    //Simple version of cellTrail used to find and click on the first unrevealed cell
+    private void guess(int row, int col){
+        //checking if out of bounds, previously visited or not trailing
+        if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || grid[row][col].visited || stopGuess) {
+            return;
+        }
+
+//        try {
+//            Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        myRobot.mouseMove(originDim.width + (cellDist * col), originDim.height + (cellDist * row));
+
+        grid[row][col].visited = true;
+
+        if (!grid[row][col].isRevealed) {
+            applyCellStat(col, row);
+        }
+        if (grid[row][col].number == -1) {
+            return;
+        }
+        if (grid[row][col].number == 0) {
+            if (noZero) {
+                return;
+            }
+            guess(row - 1, col - 1);
+            guess(row - 1, col);
+            guess(row - 1, col + 1);
+            guess(row, col - 1);
+            guess(row, col + 1);
+            guess(row + 1, col - 1);
+            guess(row + 1, col);
+            guess(row + 1, col + 1);
+            return;
+        }
+
+        int unopened = 0;
+        int flags = 0;
+        //identify cells around grid[row][col] and count unopened and flagged ones
+        for (int r = row - 1; r <= row + 1; r++) {
+            if (r >= HEIGHT || r < 0) {
+                continue;
+            }
+            for (int c = col - 1; c <= col + 1; c++) {
+                if ((c == col && r == row) || c >= LENGTH || c < 0) {
+                    continue;
+                }
+                if (!grid[r][c].isRevealed) {
+                    //click unrevealed cell
+                    myRobot.mouseMove(originDim.width + (cellDist * (c)), originDim.height + (cellDist * (r)));
+                    myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                    myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                    stopGuess = true;
+                    return;
+                }
+            }
+        }
+
+        noZero = true;
+        guess(row - 1, col - 1);
+        guess(row - 1, col);
+        guess(row - 1, col + 1);
+        guess(row, col - 1);
+        guess(row, col + 1);
+        guess(row + 1, col - 1);
+        guess(row + 1, col);
+        guess(row + 1, col + 1);
     }
 
     private void applyCellStat(int col, int row) {
@@ -724,5 +795,6 @@ public class MinesweeperBot {
 
         MinesweeperBot bot = new MinesweeperBot();
         bot.start();
+        keyboardHook.shutdownHook();
     }
 }
