@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Map;
 
@@ -18,18 +19,18 @@ public class MinesweeperBot {
     private final boolean autoRestart = true;   //true if we want to auto-restart game every time we fail
 
     private int cellDist;
+    private int startRow, startCol; //the starting coords for cellTrail; def (0,0)
     private boolean noZero;     //when true, cellTrail can't move to empty cells
     private boolean prevAction; //when true, cell(s) were revealed on the last cellTrail loop
     private boolean stopGuess;  //when true, guess() will stop running
     private Robot myRobot;
-    private Rectangle screen;
+    private final Rectangle screen;
     private Dimension originDim;
     private Dimension faceDim;
     private Cell[][] grid;
 
     private BufferedImage[] stateImages;
-    private BufferedImage[] faceImages;
-    private BufferedImage current;
+    private int[] curPixels;
     private BufferedImage flag;
     private BufferedImage question;
     private BufferedImage smile;
@@ -55,10 +56,10 @@ public class MinesweeperBot {
         noZero = false;
         prevAction = true;
         stopGuess = false;
+        startRow = startCol = 0;
     }
 
-    //TODO: !isRevealed can include unscanned 0 cells
-    public class Cell {
+    private class Cell {
         //-1 means not revealed yet
         public int number = -1;
         public boolean isRevealed = false; //we know the contents of this cell (false = unopened and not flagged)
@@ -79,6 +80,8 @@ public class MinesweeperBot {
     }
 
     private void initImages() {
+        BufferedImage temp;
+        Graphics2D graphics;
         BufferedImage neighbor0 = null;
         BufferedImage neighbor1 = null;
         BufferedImage neighbor2 = null;
@@ -89,21 +92,81 @@ public class MinesweeperBot {
         BufferedImage neighbor7 = null;
         BufferedImage neighbor8 = null;
         try {
-            flag = ImageIO.read(getClass().getResource("flag.png"));
-            frown = ImageIO.read(getClass().getResource("frown.png"));
-            neighbor0 = ImageIO.read(getClass().getResource("neighbor0.png"));
-            neighbor1 = ImageIO.read(getClass().getResource("neighbor1.png"));
-            neighbor2 = ImageIO.read(getClass().getResource("neighbor2.png"));
-            neighbor3 = ImageIO.read(getClass().getResource("neighbor3.png"));
-            neighbor4 = ImageIO.read(getClass().getResource("neighbor4.png"));
-            neighbor5 = ImageIO.read(getClass().getResource("neighbor5.png"));
-            neighbor6 = ImageIO.read(getClass().getResource("neighbor6.png"));
-            neighbor7 = ImageIO.read(getClass().getResource("neighbor7.png"));
-            neighbor8 = ImageIO.read(getClass().getResource("neighbor8.png"));
-            question = ImageIO.read(getClass().getResource("question.png"));
-            smile = ImageIO.read(getClass().getResource("smile.png"));
-            sunglasses = ImageIO.read(getClass().getResource("sunglasses.png"));
-            unopened = ImageIO.read(getClass().getResource("unopened.png"));
+            temp = ImageIO.read(getClass().getResource("flag.png"));
+            flag = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = flag.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("frown.png"));
+            frown = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = frown.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("question.png"));
+            question = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = question.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("smile.png"));
+            smile = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = smile.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("sunglasses.png"));
+            sunglasses = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = sunglasses.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("unopened.png"));
+            unopened = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = unopened.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor0.png"));
+            neighbor0 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor0.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor1.png"));
+            neighbor1 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor1.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor2.png"));
+            neighbor2 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor2.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor3.png"));
+            neighbor3 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor3.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor4.png"));
+            neighbor4 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor4.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor5.png"));
+            neighbor5 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor5.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor6.png"));
+            neighbor6 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor6.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor7.png"));
+            neighbor7 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor7.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
+            temp = ImageIO.read(getClass().getResource("neighbor8.png"));
+            neighbor8 = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
+            graphics = neighbor8.createGraphics();
+            graphics.drawImage(temp, 0, 0, null);
+            graphics.dispose();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,49 +183,56 @@ public class MinesweeperBot {
         };
     }
 
-    //TODO: search for straggler islands (could also start on one),
-    // don't start over unless totally out of options
-
     public void start() {
-        current = myRobot.createScreenCapture(screen);
-        originDim = compareScans(current, unopened);
-        faceDim = compareScans(current, smile);
+        screenCap();
+        originDim = containsImage(curPixels, unopened);
+        faceDim = containsImage(curPixels, smile);
+        if (originDim == null || faceDim == null) {
+            throw new NullPointerException("Minesweeper window obscured");
+        }
         myRobot.mouseMove(originDim.width, originDim.height);
 
-        //presses out of ide window TODO: Remove after program finished
+        //ensures focus is on minesweeper app
         myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 
-        Dimension tempDim = compareScans(current, originDim.width, originDim.height + 1, unopened);
+        Dimension tempDim = containsImage(curPixels, originDim.width, originDim.height + 1, unopened);
+        if (tempDim == null) {
+            throw new NullPointerException("Minesweeper window obscured");
+        }
         myRobot.mouseMove(tempDim.width, tempDim.height);
 
         cellDist = tempDim.height - originDim.height;
 
         do {
-            //TODO: find a way to have it so you don't restart on first go :/
             restart();
             myRobot.mouseMove(originDim.width, originDim.height);
 
             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 
-            current = myRobot.createScreenCapture(screen);
+            screenCap();
 
             applyCellStat(0, 0);
-            while(!failCheck() && !winCheck()) {
+            while (!failCheck() && !winCheck()) {
                 //we haven't won yet
                 while (prevAction) {
                     prevAction = false;
-                    cellTrail(0, 0); //pass -1, -1 if no previous cell
-                    current = myRobot.createScreenCapture(screen);
+                    cellTrail(startRow, startCol);
+                    screenCap();
                     noZero = false;
                     resetVisited();
                 }
                 if (!winCheck()) {
-                    guess(0, 0);
+                    guess(startRow, startCol);
+                    if (!prevAction) {
+                        //all that's left is to find stranded cells
+                        islandSearch();
+                        screenCap();
+                        prevAction = true;
+                    }
                     stopGuess = false;
                     noZero = false;
-                    prevAction = true;
                     resetVisited();
                 }
             }
@@ -175,6 +245,8 @@ public class MinesweeperBot {
         } while (!winCheck() && autoRestart);
     }
 
+    //Looks for cell trail and once found, runs down it in all 8 directions.
+    //Can flag surrounding cells, chain open, and do pattern flagging and opening (1-1 and 1-2; see wiki)
     private void cellTrail(int row, int col) {
         //checking if out of bounds, previously visited or not trailing
         if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || grid[row][col].visited) {
@@ -211,7 +283,7 @@ public class MinesweeperBot {
             return;
         }
 
-        int unopened = 0;
+        int unopened = 0;   //surrounding cells that are unopened
         int flags = 0;
         //identify cells around grid[row][col] and count unopened and flagged ones
         for (int r = row - 1; r <= row + 1; r++) {
@@ -236,7 +308,7 @@ public class MinesweeperBot {
         }
 
         if (unopened == (grid[row][col].number - flags) && unopened > 0) {
-            //flag em (iterate over all 8 cells again or keep track of unopened cell locales with new array)
+            //flag all surrounding, unrevealed cells
             for (int r = row - 1; r <= row + 1; r++) {
                 if (r >= HEIGHT || r < 0) {
                     continue;
@@ -262,68 +334,68 @@ public class MinesweeperBot {
             }
         }
         if (flags == grid[row][col].number && unopened > 0) {
-            //chain
+            //chain open surrounding cells
             myRobot.mouseMove(originDim.width + (cellDist * col), originDim.height + (cellDist * row));
             myRobot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
             myRobot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
             prevAction = true;
-            current = myRobot.createScreenCapture(screen);
-        } else if (grid[row][col].number - flags == 1) {
-            int effNum = 0;
-            //scan cross
+            screenCap();
+        }
+        //pattern flagging and opening (1-1 and 1-2)
+        else if (grid[row][col].number - flags == 1) {
+            int effNum;
             //cell above
             if (row - 1 > 0) {
                 effNum = calcEffNum(row - 1, col);
-                if(effNum == 1 && (row == HEIGHT - 1 || ((col == 0 || grid[row+1][col-1].isRevealed) && grid[row+1][col].isRevealed && (col == LENGTH - 1 || grid[row+1][col+1].isRevealed)))){
+                if (effNum == 1 && (row == HEIGHT - 1 || ((col == 0 || grid[row + 1][col - 1].isRevealed) && grid[row + 1][col].isRevealed && (col == LENGTH - 1 || grid[row + 1][col + 1].isRevealed)))) {
                     if (col > 0) {
-                        applyCellStat(col-1, row-2);
-                        if(!grid[row-2][col-1].isRevealed) {
+                        applyCellStat(col - 1, row - 2);
+                        if (!grid[row - 2][col - 1].isRevealed) {
                             // opening top left cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                    if (col < LENGTH - 1){
-                        applyCellStat(col+1, row-2);
-                        if(!grid[row-2][col+1].isRevealed) {
+                    if (col < LENGTH - 1) {
+                        applyCellStat(col + 1, row - 2);
+                        if (!grid[row - 2][col + 1].isRevealed) {
                             //opening top right cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                }
-                else if(effNum == 2){
-                    if(col > 0){
-                        applyCellStat(col-1, row-2);
-                        if (!grid[row-2][col-1].isRevealed && grid[row-2][col].isRevealed && (col == LENGTH - 1 || grid[row-2][col+1].isRevealed)) {
+                } else if (effNum == 2) {
+                    if (col > 0) {
+                        applyCellStat(col - 1, row - 2);
+                        if (!grid[row - 2][col - 1].isRevealed && grid[row - 2][col].isRevealed && (col == LENGTH - 1 || grid[row - 2][col + 1].isRevealed)) {
                             //flagging top left cell
                             System.out.println(row + " and " + col + " up top left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row-2][col-1].isRevealed = true;
-                            grid[row-2][col-1].isFlagged = true;
+                            grid[row - 2][col - 1].isRevealed = true;
+                            grid[row - 2][col - 1].isFlagged = true;
                             prevAction = true;
                         }
                     }
-                    if(col < LENGTH - 1){
-                        applyCellStat(col+1, row-2);
-                        if(!grid[row-2][col+1].isRevealed && grid[row-2][col].isRevealed && (col == 0 || grid[row-2][col-1].isRevealed)) {
+                    if (col < LENGTH - 1) {
+                        applyCellStat(col + 1, row - 2);
+                        if (!grid[row - 2][col + 1].isRevealed && grid[row - 2][col].isRevealed && (col == 0 || grid[row - 2][col - 1].isRevealed)) {
                             //flagging top right cell
                             System.out.println(row + " and " + col + " up top right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row-2][col+1].isRevealed = true;
-                            grid[row-2][col+1].isFlagged = true;
+                            grid[row - 2][col + 1].isRevealed = true;
+                            grid[row - 2][col + 1].isFlagged = true;
                             prevAction = true;
                         }
                     }
@@ -331,58 +403,57 @@ public class MinesweeperBot {
             }
 
             //cell below
-            if(row + 2 < HEIGHT){
-                effNum = calcEffNum(row+1, col);
-                if(effNum == 1 && (row == 0 || ((col == 0 || grid[row-1][col-1].isRevealed) && grid[row-1][col].isRevealed && (col == LENGTH - 1 || grid[row-1][col+1].isRevealed)))){
+            if (row + 2 < HEIGHT) {
+                effNum = calcEffNum(row + 1, col);
+                if (effNum == 1 && (row == 0 || ((col == 0 || grid[row - 1][col - 1].isRevealed) && grid[row - 1][col].isRevealed && (col == LENGTH - 1 || grid[row - 1][col + 1].isRevealed)))) {
                     if (col > 0) {
-                        applyCellStat(col-1, row+2);
-                        if(!grid[row+2][col-1].isRevealed) {
+                        applyCellStat(col - 1, row + 2);
+                        if (!grid[row + 2][col - 1].isRevealed) {
                             // opening bottom left cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                    if (col < LENGTH - 1){
-                        applyCellStat(col+1, row+2);
-                        if(!grid[row+2][col+1].isRevealed) {
+                    if (col < LENGTH - 1) {
+                        applyCellStat(col + 1, row + 2);
+                        if (!grid[row + 2][col + 1].isRevealed) {
                             //opening bottom right cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                }
-                else if(effNum == 2){
-                    if(col > 0){
-                        applyCellStat(col-1, row+2);
-                        if(!grid[row+2][col-1].isRevealed && grid[row+2][col].isRevealed && (col == LENGTH - 1 || grid[row+2][col+1].isRevealed)) {
+                } else if (effNum == 2) {
+                    if (col > 0) {
+                        applyCellStat(col - 1, row + 2);
+                        if (!grid[row + 2][col - 1].isRevealed && grid[row + 2][col].isRevealed && (col == LENGTH - 1 || grid[row + 2][col + 1].isRevealed)) {
                             //flagging bottom left cell
                             System.out.println(row + " and " + col + " down bottom left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row+2][col-1].isRevealed = true;
-                            grid[row+2][col-1].isFlagged = true;
+                            grid[row + 2][col - 1].isRevealed = true;
+                            grid[row + 2][col - 1].isFlagged = true;
                             prevAction = true;
                         }
                     }
-                    if(col < LENGTH - 1){
-                        applyCellStat(col+1, row+2);
-                        if(!grid[row+2][col+1].isRevealed && grid[row+2][col].isRevealed && (col == 0 || grid[row+2][col-1].isRevealed)) {
+                    if (col < LENGTH - 1) {
+                        applyCellStat(col + 1, row + 2);
+                        if (!grid[row + 2][col + 1].isRevealed && grid[row + 2][col].isRevealed && (col == 0 || grid[row + 2][col - 1].isRevealed)) {
                             //flagging bottom right cell
                             System.out.println(row + " and " + col + " down bottom right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row+2][col+1].isRevealed = true;
-                            grid[row+2][col+1].isFlagged = true;
+                            grid[row + 2][col + 1].isRevealed = true;
+                            grid[row + 2][col + 1].isFlagged = true;
                             prevAction = true;
                         }
                     }
@@ -390,58 +461,57 @@ public class MinesweeperBot {
             }
 
             //left cell
-            if(col - 1 > 0) {
-                effNum = calcEffNum(row, col-1);
-                if(effNum == 1 && (col == LENGTH - 1 || ((row == 0 || grid[row-1][col+1].isRevealed) && grid[row][col+1].isRevealed && (row == HEIGHT - 1 || grid[row+1][col+1].isRevealed)))){
+            if (col - 1 > 0) {
+                effNum = calcEffNum(row, col - 1);
+                if (effNum == 1 && (col == LENGTH - 1 || ((row == 0 || grid[row - 1][col + 1].isRevealed) && grid[row][col + 1].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col + 1].isRevealed)))) {
                     if (row > 0) {
-                        applyCellStat(col-2, row-1);
-                        if(!grid[row-1][col-2].isRevealed) {
+                        applyCellStat(col - 2, row - 1);
+                        if (!grid[row - 1][col - 2].isRevealed) {
                             // opening top left cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                    if (row < HEIGHT - 1){
-                        applyCellStat(col-2, row+1);
-                        if(!grid[row+1][col-2].isRevealed) {
+                    if (row < HEIGHT - 1) {
+                        applyCellStat(col - 2, row + 1);
+                        if (!grid[row + 1][col - 2].isRevealed) {
                             //opening bottom left cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                }
-                else if(effNum == 2){
-                    if(row > 0){
-                        applyCellStat(col-2, row-1);
-                        if(!grid[row-1][col-2].isRevealed && grid[row][col-2].isRevealed && (row == HEIGHT - 1 || grid[row+1][col-2].isRevealed)) {
+                } else if (effNum == 2) {
+                    if (row > 0) {
+                        applyCellStat(col - 2, row - 1);
+                        if (!grid[row - 1][col - 2].isRevealed && grid[row][col - 2].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col - 2].isRevealed)) {
                             //flagging top left cell
                             System.out.println(row + " and " + col + " left top left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row-1][col-2].isRevealed = true;
-                            grid[row-1][col-2].isFlagged = true;
+                            grid[row - 1][col - 2].isRevealed = true;
+                            grid[row - 1][col - 2].isFlagged = true;
                             prevAction = true;
                         }
                     }
-                    if(row < HEIGHT - 1){
-                        applyCellStat(col-2, row+1);
-                        if(!grid[row+1][col-2].isRevealed && grid[row][col-2].isRevealed && (row == 0 || grid[row-1][col-2].isRevealed)) {
+                    if (row < HEIGHT - 1) {
+                        applyCellStat(col - 2, row + 1);
+                        if (!grid[row + 1][col - 2].isRevealed && grid[row][col - 2].isRevealed && (row == 0 || grid[row - 1][col - 2].isRevealed)) {
                             //flagging bottom left cell
                             System.out.println(row + " and " + col + "left bottom left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row+1][col-2].isRevealed = true;
-                            grid[row+1][col-2].isFlagged = true;
+                            grid[row + 1][col - 2].isRevealed = true;
+                            grid[row + 1][col - 2].isFlagged = true;
                             prevAction = true;
                         }
                     }
@@ -449,58 +519,57 @@ public class MinesweeperBot {
             }
 
             //right cell
-            if(col + 2 < LENGTH){
-                effNum = calcEffNum(row, col+1);
-                if(effNum == 1 && (col == 0 || ((row == 0 || grid[row-1][col-1].isRevealed) && grid[row][col-1].isRevealed && (row == HEIGHT - 1 || grid[row+1][col-1].isRevealed)))){
+            if (col + 2 < LENGTH) {
+                effNum = calcEffNum(row, col + 1);
+                if (effNum == 1 && (col == 0 || ((row == 0 || grid[row - 1][col - 1].isRevealed) && grid[row][col - 1].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col - 1].isRevealed)))) {
                     if (row > 0) {
-                        applyCellStat(col+2, row-1);
-                        if(!grid[row-1][col+2].isRevealed) {
+                        applyCellStat(col + 2, row - 1);
+                        if (!grid[row - 1][col + 2].isRevealed) {
                             // opening top right cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                    if (row < HEIGHT - 1){
-                        applyCellStat(col+2, row+1);
-                        if(!grid[row+1][col+2].isRevealed) {
+                    if (row < HEIGHT - 1) {
+                        applyCellStat(col + 2, row + 1);
+                        if (!grid[row + 1][col + 2].isRevealed) {
                             //opening bottom right cell
                             System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
                             prevAction = true;
-                            current = myRobot.createScreenCapture(screen);
+                            screenCap();
                         }
                     }
-                }
-                else if(effNum == 2){
-                    if(row > 0){
-                        applyCellStat(col+2, row-1);
-                        if(!grid[row-1][col+2].isRevealed && grid[row][col+2].isRevealed && (row == HEIGHT - 1 || grid[row+1][col+2].isRevealed)) {
+                } else if (effNum == 2) {
+                    if (row > 0) {
+                        applyCellStat(col + 2, row - 1);
+                        if (!grid[row - 1][col + 2].isRevealed && grid[row][col + 2].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col + 2].isRevealed)) {
                             //flagging top right cell
                             System.out.println(row + " and " + col + " right top right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row-1][col+2].isRevealed = true;
-                            grid[row-1][col+2].isFlagged = true;
+                            grid[row - 1][col + 2].isRevealed = true;
+                            grid[row - 1][col + 2].isFlagged = true;
                             prevAction = true;
                         }
                     }
-                    if(row < HEIGHT - 1){
-                        applyCellStat(col+2, row+1);
-                        if(!grid[row+1][col+2].isRevealed && grid[row][col+2].isRevealed && (row == 0 || grid[row-1][col+2].isRevealed)) {
+                    if (row < HEIGHT - 1) {
+                        applyCellStat(col + 2, row + 1);
+                        if (!grid[row + 1][col + 2].isRevealed && grid[row][col + 2].isRevealed && (row == 0 || grid[row - 1][col + 2].isRevealed)) {
                             //flagging bottom right cell
                             System.out.println(row + " and " + col + " right bottom right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
-                            grid[row+1][col+2].isRevealed = true;
-                            grid[row+1][col+2].isFlagged = true;
+                            grid[row + 1][col + 2].isRevealed = true;
+                            grid[row + 1][col + 2].isFlagged = true;
                             prevAction = true;
                         }
                     }
@@ -520,7 +589,8 @@ public class MinesweeperBot {
     }
 
     //Simple version of cellTrail used to find and click on the first unrevealed cell
-    private void guess(int row, int col){
+    //that is along the cell trail
+    private void guess(int row, int col) {
         //checking if out of bounds, previously visited or not trailing
         if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || grid[row][col].visited || stopGuess) {
             return;
@@ -556,9 +626,7 @@ public class MinesweeperBot {
             return;
         }
 
-        int unopened = 0;
-        int flags = 0;
-        //identify cells around grid[row][col] and count unopened and flagged ones
+        //examine surrounding cells and click on the first unrevealed one
         for (int r = row - 1; r <= row + 1; r++) {
             if (r >= HEIGHT || r < 0) {
                 continue;
@@ -572,7 +640,9 @@ public class MinesweeperBot {
                     myRobot.mouseMove(originDim.width + (cellDist * (c)), originDim.height + (cellDist * (r)));
                     myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                     myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                    System.out.println("Guessing " + r + " and " + c);
                     stopGuess = true;
+                    prevAction = true;
                     return;
                 }
             }
@@ -589,10 +659,38 @@ public class MinesweeperBot {
         guess(row + 1, col + 1);
     }
 
+    //looks for and clicks on the first unrevealed cell on the grid
+    //used when no unrevealed cells on cell trail
+    private void islandSearch() {
+        int tempRow = 0, tempCol = 0;
+        for (int r = 0; r < HEIGHT; r++) {
+            for (int c = 0; c < LENGTH; c++) {
+                if (!grid[r][c].isRevealed) {
+                    applyCellStat(c, r);
+                    if (grid[r][c].number == -1) {
+                        tempRow = r;
+                        tempCol = c;
+                    } else if (grid[r][c].number != 0) {
+                        startRow = r;
+                        startCol = c;
+                        return;
+                    }
+                }
+            }
+        }
+        startRow = tempRow;
+        startCol = tempCol;
+        //click unrevealed cell
+        myRobot.mouseMove(originDim.width + (cellDist * (startCol)), originDim.height + (cellDist * (startRow)));
+        myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        System.out.println("Islanding " + tempRow + " and " + tempCol);
+    }
+
     private void applyCellStat(int col, int row) {
         Dimension dim = new Dimension(originDim.width + (col * cellDist), originDim.height + (row * cellDist));
         for (int i = 0; i < stateImages.length; i++) {
-            if (compareScans(current, dim.width, dim.height, dim.width + cellDist, dim.height + cellDist, stateImages[i]) != null) {
+            if (compareImages(curPixels, dim.width, dim.height, stateImages[i])) {
                 grid[row][col].number = i;
                 grid[row][col].isRevealed = true;
                 return;
@@ -627,60 +725,70 @@ public class MinesweeperBot {
         }
     }
 
-    //TODO: maybe find where face is first time then start there always afterwards
     //Returns true if we get a game over
-    private boolean failCheck(){
-        return compareScans(current, faceDim.width, faceDim.height, faceDim.width+frown.getWidth(), faceDim.height+frown.getHeight(), frown) != null;
+    private boolean failCheck() {
+        boolean hm = compareImages(curPixels, faceDim.width, faceDim.height, frown);
+        if (hm) {
+            System.out.println("FAILURE");
+        } else {
+            System.out.println("Sike");
+        }
+        return hm;
     }
 
     //Returns true if we won
-    private boolean winCheck(){
-        return compareScans(current, faceDim.width, faceDim.height, faceDim.width+sunglasses.getWidth(), faceDim.height+sunglasses.getHeight(), sunglasses) != null;
+    private boolean winCheck() {
+        return compareImages(curPixels, faceDim.width, faceDim.height, sunglasses);
     }
 
-    private void restart(){
+    private void restart() {
         //+10 because button doesn't register click on edge
         myRobot.mouseMove(faceDim.width + 10, faceDim.height + 10);
         myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
+
+    //screen capture (BufferedImage) is converted to data buffer and alpha is removed here to keep performance high
+    private void screenCap() {
+        BufferedImage temp = myRobot.createScreenCapture(screen);
+        curPixels = ((DataBufferInt) temp.getRaster().getDataBuffer()).getData();
+
+        //alpha removal
+        for (int i = 0; i < curPixels.length; i++) {
+            curPixels[i] &= 0xFFFFFF;
+        }
+    }
+
     /*
-    scans the screen looking for a set of pixel colors that matches the icon. Uses the rgb space to do this.
+    scans data buffer curPixels looking for a set of pixel colors that matches the icon.
     iconX/iconY -- coordinates for the icon
     x/y -- coordinates for the screen capture
         @return
-            the dimensions of the 1st pixel (x,y) of the icon on the current screen
+            the dimensions of the 1st pixel (x,y) of the icon on the curPixels screen
             NULL if nothing matches
      */
-    public Dimension compareScans(BufferedImage current, BufferedImage icon) {
-        Color tempColor;
-        Color tempIconColor;
-        double tempDist;
+    private Dimension containsImage(int[] curPixels, BufferedImage icon) {
+        final int[] iconPixels = ((DataBufferInt) icon.getRaster().getDataBuffer()).getData();
+
+        int width = screen.width;
+        int height = screen.height;
+        int iconHeight = icon.getHeight();
+        int iconWidth = icon.getWidth();
         boolean matches;
-        for (int x = 0; x < current.getWidth(); x++) {
-            for (int y = 0; y < current.getHeight(); y++) {
+
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 matches = true;
-                for (int iconX = 0; iconX < icon.getWidth(); iconX++) {
-                    for (int iconY = 0; iconY < icon.getHeight(); iconY++) {
-                        if (x + iconX < current.getWidth() && y + iconY < current.getHeight()) {  //making sure not out of bounds
-                            tempColor = new Color(current.getRGB(x + iconX, y + iconY));
-                            tempIconColor = new Color(icon.getRGB(iconX, iconY));
-                            tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
-//                           String hexColoricon = String.format("#%06X", (0xFFFFFF & tempIconColor));
-//                           String hexColor = String.format("#%06X", (0xFFFFFF & tempColor));
-                            if (tempDist > 50) { //checking if they match at this pixel within given margin of error
-                                matches = false;
-                                break;
-                            } else {
-//                               myRobot.mouseMove(x + iconX, y + iconY);
-                            }
-                        } else {    //not within bounds
+                for (int iconY = 0; iconY < iconHeight; iconY++) {
+                    for (int iconX = 0; iconX < iconWidth; iconX++) {
+                        if (x + iconX >= width || y + iconY >= height || curPixels[(y + iconY) * width + x + iconX] != iconPixels[iconY * iconWidth + iconX]) {
                             matches = false;
                             break;
                         }
                     }
-                    if (!matches) {   //have to break out of both icon dimension loops
+                    if (!matches) { //have to break out of both icon dimension loops
                         break;
                     }
                 }
@@ -689,38 +797,32 @@ public class MinesweeperBot {
                 }
             }
         }
+
         return null;
     }
 
-    //Overloading method for starting at dimension (x, y) of current Buffered Image
-    public Dimension compareScans(BufferedImage current, int x, int y, BufferedImage icon) {
-        Color tempColor;
-        Color tempIconColor;
-        double tempDist;
+    //Overloading method for starting at dimension (x, y) of curPixels data buffer
+    private Dimension containsImage(int[] curPixels, int xStart, int yStart, BufferedImage icon) {
+        final int[] iconPixels = ((DataBufferInt) icon.getRaster().getDataBuffer()).getData();
+
+        int width = screen.width;
+        int height = screen.height;
+        int iconHeight = icon.getHeight();
+        int iconWidth = icon.getWidth();
         boolean matches;
-        for (; x < current.getWidth(); x++) {
-            for (; y < current.getHeight(); y++) {
+
+
+        for (int y = yStart; y < height; y++) {
+            for (int x = xStart; x < width; x++) {
                 matches = true;
-                for (int iconX = 0; iconX < icon.getWidth(); iconX++) {
-                    for (int iconY = 0; iconY < icon.getHeight(); iconY++) {
-                        if (x + iconX < current.getWidth() && y + iconY < current.getHeight()) {  //making sure not out of bounds
-                            tempColor = new Color(current.getRGB(x + iconX, y + iconY));
-                            tempIconColor = new Color(icon.getRGB(iconX, iconY));
-                            tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
-//                           String hexColoricon = String.format("#%06X", (0xFFFFFF & tempIconColor));
-//                           String hexColor = String.format("#%06X", (0xFFFFFF & tempColor));
-                            if (tempDist > 50) { //checking if they match at this pixel within given margin of error
-                                matches = false;
-                                break;
-                            } else {
-//                               myRobot.mouseMove(x + iconX, y + iconY);
-                            }
-                        } else {    //not within bounds
+                for (int iconY = 0; iconY < iconHeight; iconY++) {
+                    for (int iconX = 0; iconX < iconWidth; iconX++) {
+                        if (x + iconX >= width || y + iconY >= height || curPixels[(y + iconY) * width + x + iconX] != iconPixels[iconY * iconWidth + iconX]) {
                             matches = false;
                             break;
                         }
                     }
-                    if (!matches) {   //have to break out of both icon dimension loops
+                    if (!matches) { //have to break out of both icon dimension loops
                         break;
                     }
                 }
@@ -729,38 +831,32 @@ public class MinesweeperBot {
                 }
             }
         }
+
         return null;
     }
 
-    //Overloading method for starting at dimension (x, y) and ending at dimension (endX, endY) of current Buffered Image
-    public Dimension compareScans(BufferedImage current, int x, int y, int endX, int endY, BufferedImage icon) {
-        Color tempColor;
-        Color tempIconColor;
-        double tempDist;
+    //Overloading method for starting at dimension (x, y) and ending at dimension (endX, endY) of curPixels data buffer
+    private Dimension containsImage(int[] curPixels, int startX, int startY, int endX, int endY, BufferedImage icon) {
+        final int[] iconPixels = ((DataBufferInt) icon.getRaster().getDataBuffer()).getData();
+
+        int width = screen.width;
+        int height = screen.height;
+        int iconHeight = icon.getHeight();
+        int iconWidth = icon.getWidth();
         boolean matches;
-        for (; x < endX; x++) {
-            for (; y < endY; y++) {
+
+
+        for (int y = startY; y < endY; y++) {
+            for (int x = startX; x < endX; x++) {
                 matches = true;
-                for (int iconX = 0; iconX < icon.getWidth(); iconX++) {
-                    for (int iconY = 0; iconY < icon.getHeight(); iconY++) {
-                        if (x + iconX < endX && y + iconY < endY) {  //making sure not out of bounds
-                            tempColor = new Color(current.getRGB(x + iconX, y + iconY));
-                            tempIconColor = new Color(icon.getRGB(iconX, iconY));
-                            tempDist = Math.sqrt(Math.pow(tempColor.getRed() - tempIconColor.getRed(), 2) + Math.pow(tempColor.getBlue() - tempIconColor.getBlue(), 2) + Math.pow(tempColor.getGreen() - tempIconColor.getGreen(), 2));
-//                           String hexColoricon = String.format("#%06X", (0xFFFFFF & tempIconColor));
-//                           String hexColor = String.format("#%06X", (0xFFFFFF & tempColor));
-                            if (tempDist > 50) { //checking if they match at this pixel within given margin of error
-                                matches = false;
-                                break;
-                            } else {
-//                               myRobot.mouseMove(x + iconX, y + iconY);
-                            }
-                        } else {    //not within bounds
+                for (int iconY = 0; iconY < iconHeight; iconY++) {
+                    for (int iconX = 0; iconX < iconWidth; iconX++) {
+                        if (x + iconX >= endX || y + iconY >= endY || curPixels[(y + iconY) * width + x + iconX] != iconPixels[iconY * iconWidth + iconX]) {
                             matches = false;
                             break;
                         }
                     }
-                    if (!matches) {   //have to break out of both icon dimension loops
+                    if (!matches) { //have to break out of both icon dimension loops
                         break;
                     }
                 }
@@ -769,10 +865,43 @@ public class MinesweeperBot {
                 }
             }
         }
+
         return null;
     }
 
-    public static void main(String[] cheese) throws InterruptedException {
+    //Checks if curPixels, starting at dimension (x, y) is icon
+    private boolean compareImages(int[] curPixels, int startX, int startY, BufferedImage icon) {
+        final int[] iconPixels = ((DataBufferInt) icon.getRaster().getDataBuffer()).getData();
+
+        int width = screen.width;
+        int height = screen.height;
+        int iconHeight = icon.getHeight();
+        int iconWidth = icon.getWidth();
+
+        if (startY + iconHeight > height || startX + iconWidth > width) {
+            return false;
+        }
+
+        for (int y = 0; y < iconHeight; y++) {
+            for (int x = 0; x < iconWidth; x++) {
+                if (curPixels[(startY + y) * width + x + startX] != iconPixels[y * iconWidth + x]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void duck() {
+        screenCap();
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < 1000; i++) {
+            containsImage(curPixels, smile);
+        }
+        System.out.println((double) (System.currentTimeMillis() - time) / 1000);
+    }
+
+    public static void main(String[] cheese) {
         GlobalKeyboardHook keyboardHook = new GlobalKeyboardHook(true);
         for (Map.Entry<Long, String> keyboard : GlobalKeyboardHook.listKeyboards().entrySet()) {
             System.out.format("%d: %s\n", keyboard.getKey(), keyboard.getValue());
@@ -789,12 +918,11 @@ public class MinesweeperBot {
 
             @Override
             public void keyReleased(GlobalKeyEvent event) {
-                ;
             }
         });
-
         MinesweeperBot bot = new MinesweeperBot();
         bot.start();
+//        bot.duck();
         keyboardHook.shutdownHook();
     }
 }
