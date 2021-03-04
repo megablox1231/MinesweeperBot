@@ -1,16 +1,14 @@
-
-
 import lc.kra.system.keyboard.GlobalKeyboardHook;
-import lc.kra.system.keyboard.event.GlobalKeyAdapter;
-import lc.kra.system.keyboard.event.GlobalKeyEvent;
+        import lc.kra.system.keyboard.event.GlobalKeyAdapter;
+        import lc.kra.system.keyboard.event.GlobalKeyEvent;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.io.IOException;
-import java.util.Map;
+        import javax.imageio.ImageIO;
+        import java.awt.*;
+        import java.awt.event.InputEvent;
+        import java.awt.image.BufferedImage;
+        import java.awt.image.DataBufferInt;
+        import java.io.IOException;
+        import java.util.Map;
 
 public class MinesweeperBot {
 
@@ -31,8 +29,6 @@ public class MinesweeperBot {
 
     private BufferedImage[] stateImages;
     private int[] curPixels;
-    private BufferedImage flag;
-    private BufferedImage question;
     private BufferedImage smile;
     private BufferedImage sunglasses;
     private BufferedImage frown;
@@ -92,19 +88,9 @@ public class MinesweeperBot {
         BufferedImage neighbor7 = null;
         BufferedImage neighbor8 = null;
         try {
-            temp = ImageIO.read(getClass().getResource("flag.png"));
-            flag = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
-            graphics = flag.createGraphics();
-            graphics.drawImage(temp, 0, 0, null);
-            graphics.dispose();
             temp = ImageIO.read(getClass().getResource("frown.png"));
             frown = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
             graphics = frown.createGraphics();
-            graphics.drawImage(temp, 0, 0, null);
-            graphics.dispose();
-            temp = ImageIO.read(getClass().getResource("question.png"));
-            question = new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_INT_RGB);
-            graphics = question.createGraphics();
             graphics.drawImage(temp, 0, 0, null);
             graphics.dispose();
             temp = ImageIO.read(getClass().getResource("smile.png"));
@@ -253,13 +239,6 @@ public class MinesweeperBot {
             return;
         }
 
-//        try {
-//            Thread.sleep(100);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        myRobot.mouseMove(originDim.width + (cellDist * col), originDim.height + (cellDist * row));
-
         grid[row][col].visited = true;
 
         if (!grid[row][col].isRevealed) {
@@ -319,13 +298,11 @@ public class MinesweeperBot {
                     }
                     if (!grid[r][c].isRevealed) {
                         //flag here
-                        System.out.println("we flagging bruh");
                         myRobot.mouseMove(originDim.width + (cellDist * c), originDim.height + (cellDist * r));
                         myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                         myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
                         grid[r][c].isFlagged = true;
                         grid[r][c].isRevealed = true;
-                        System.out.println("Row: " + r + " Col: " + c);
                         flags++;
                         unopened--;
                         prevAction = true;
@@ -352,7 +329,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 1, row - 2);
                         if (!grid[row - 2][col - 1].isRevealed) {
                             // opening top left cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -364,7 +340,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 1, row - 2);
                         if (!grid[row - 2][col + 1].isRevealed) {
                             //opening top right cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -377,7 +352,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 1, row - 2);
                         if (!grid[row - 2][col - 1].isRevealed && grid[row - 2][col].isRevealed && (col == LENGTH - 1 || grid[row - 2][col + 1].isRevealed)) {
                             //flagging top left cell
-                            System.out.println(row + " and " + col + " up top left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -390,7 +364,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 1, row - 2);
                         if (!grid[row - 2][col + 1].isRevealed && grid[row - 2][col].isRevealed && (col == 0 || grid[row - 2][col - 1].isRevealed)) {
                             //flagging top right cell
-                            System.out.println(row + " and " + col + " up top right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row - 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -410,7 +383,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 1, row + 2);
                         if (!grid[row + 2][col - 1].isRevealed) {
                             // opening bottom left cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -422,7 +394,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 1, row + 2);
                         if (!grid[row + 2][col + 1].isRevealed) {
                             //opening bottom right cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -435,7 +406,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 1, row + 2);
                         if (!grid[row + 2][col - 1].isRevealed && grid[row + 2][col].isRevealed && (col == LENGTH - 1 || grid[row + 2][col + 1].isRevealed)) {
                             //flagging bottom left cell
-                            System.out.println(row + " and " + col + " down bottom left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -448,7 +418,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 1, row + 2);
                         if (!grid[row + 2][col + 1].isRevealed && grid[row + 2][col].isRevealed && (col == 0 || grid[row + 2][col - 1].isRevealed)) {
                             //flagging bottom right cell
-                            System.out.println(row + " and " + col + " down bottom right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 1)), originDim.height + (cellDist * (row + 2)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -468,7 +437,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 2, row - 1);
                         if (!grid[row - 1][col - 2].isRevealed) {
                             // opening top left cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -480,7 +448,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 2, row + 1);
                         if (!grid[row + 1][col - 2].isRevealed) {
                             //opening bottom left cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -493,7 +460,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 2, row - 1);
                         if (!grid[row - 1][col - 2].isRevealed && grid[row][col - 2].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col - 2].isRevealed)) {
                             //flagging top left cell
-                            System.out.println(row + " and " + col + " left top left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -506,7 +472,6 @@ public class MinesweeperBot {
                         applyCellStat(col - 2, row + 1);
                         if (!grid[row + 1][col - 2].isRevealed && grid[row][col - 2].isRevealed && (row == 0 || grid[row - 1][col - 2].isRevealed)) {
                             //flagging bottom left cell
-                            System.out.println(row + " and " + col + "left bottom left");
                             myRobot.mouseMove(originDim.width + (cellDist * (col - 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -526,7 +491,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 2, row - 1);
                         if (!grid[row - 1][col + 2].isRevealed) {
                             // opening top right cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -538,7 +502,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 2, row + 1);
                         if (!grid[row + 1][col + 2].isRevealed) {
                             //opening bottom right cell
-                            System.out.println(row + " and " + col);
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -551,7 +514,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 2, row - 1);
                         if (!grid[row - 1][col + 2].isRevealed && grid[row][col + 2].isRevealed && (row == HEIGHT - 1 || grid[row + 1][col + 2].isRevealed)) {
                             //flagging top right cell
-                            System.out.println(row + " and " + col + " right top right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row - 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -564,7 +526,6 @@ public class MinesweeperBot {
                         applyCellStat(col + 2, row + 1);
                         if (!grid[row + 1][col + 2].isRevealed && grid[row][col + 2].isRevealed && (row == 0 || grid[row - 1][col + 2].isRevealed)) {
                             //flagging bottom right cell
-                            System.out.println(row + " and " + col + " right bottom right");
                             myRobot.mouseMove(originDim.width + (cellDist * (col + 2)), originDim.height + (cellDist * (row + 1)));
                             myRobot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
                             myRobot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
@@ -595,13 +556,6 @@ public class MinesweeperBot {
         if (row >= HEIGHT || row < 0 || col >= LENGTH || col < 0 || grid[row][col].visited || stopGuess) {
             return;
         }
-
-//        try {
-//            Thread.sleep(100);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        myRobot.mouseMove(originDim.width + (cellDist * col), originDim.height + (cellDist * row));
 
         grid[row][col].visited = true;
 
@@ -640,7 +594,6 @@ public class MinesweeperBot {
                     myRobot.mouseMove(originDim.width + (cellDist * (c)), originDim.height + (cellDist * (r)));
                     myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                     myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-                    System.out.println("Guessing " + r + " and " + c);
                     stopGuess = true;
                     prevAction = true;
                     return;
@@ -684,7 +637,6 @@ public class MinesweeperBot {
         myRobot.mouseMove(originDim.width + (cellDist * (startCol)), originDim.height + (cellDist * (startRow)));
         myRobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         myRobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        System.out.println("Islanding " + tempRow + " and " + tempCol);
     }
 
     private void applyCellStat(int col, int row) {
@@ -727,13 +679,7 @@ public class MinesweeperBot {
 
     //Returns true if we get a game over
     private boolean failCheck() {
-        boolean hm = compareImages(curPixels, faceDim.width, faceDim.height, frown);
-        if (hm) {
-            System.out.println("FAILURE");
-        } else {
-            System.out.println("Sike");
-        }
-        return hm;
+        return compareImages(curPixels, faceDim.width, faceDim.height, frown);
     }
 
     //Returns true if we won
@@ -892,15 +838,6 @@ public class MinesweeperBot {
         return true;
     }
 
-    public void duck() {
-        screenCap();
-        long time = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
-            containsImage(curPixels, smile);
-        }
-        System.out.println((double) (System.currentTimeMillis() - time) / 1000);
-    }
-
     public static void main(String[] cheese) {
         GlobalKeyboardHook keyboardHook = new GlobalKeyboardHook(true);
         for (Map.Entry<Long, String> keyboard : GlobalKeyboardHook.listKeyboards().entrySet()) {
@@ -922,7 +859,6 @@ public class MinesweeperBot {
         });
         MinesweeperBot bot = new MinesweeperBot();
         bot.start();
-//        bot.duck();
         keyboardHook.shutdownHook();
     }
 }
